@@ -1,28 +1,46 @@
 # Load various imports
 import os
+#import pickle
+#from librosa import feature
 import pandas as pd
-from helper import extract_features
+from tqdm import tqdm
+#from helper import extract_features
+import helper as helper
 
 
-# Set the path to the full UrbanSound dataset
-fulldatasetpath = '/Urban Sound/UrbanSound8K/audio/'
+# if os.path.exists('../data/features_df'):
+if os.path.isfile('./data/features_df.pkl'):
+    print("[INFO] File exist")
+else:
+    # Set the path to the full UrbanSound dataset
+    #fulldatasetpath = '/Urban Sound/UrbanSound8K/audio/'
+    fulldatasetpath = 'C:/research/mvpconf/urbansound8k/'
 
-metadata = pd.read_csv(fulldatasetpath + '../metadata/UrbanSound8K.csv')
+    #metadata = pd.read_csv(fulldatasetpath + '../metadata/UrbanSound8K.csv')
+    #metadata = pd.read_csv(fulldatasetpath + 'UrbanSound8K.csv')
+    metadata = helper.create_metadata_df(fulldatasetpath + 'UrbanSound8K.csv')
+    print(metadata.head())
+    print('\n[INFO] Start feature extraction\n')
 
-features = []
+    metadata_list = helper.create_metadata_list(metadata)
 
-# Iterate through each sound file and extract the features
-for index, row in metadata.iterrows():
+    features = []
+    # Iterate through each sound file and extract the features
+    for i in tqdm(metadata_list):
+        class_label = i[0]
+        data = helper.extract_features(i[1])
+        features.append([data, class_label])
+    #features = helper.extract_features(metadata_list)
 
-    file_name = os.path.join(os.path.abspath(
-        fulldatasetpath), 'fold'+str(row["fold"])+'/', str(row["slice_file_name"]))
+    # Convert into a Panda dataframe
+    features_df = pd.DataFrame(features, columns=['feature', 'class_label'])
 
-    class_label = row["class_name"]
-    data = extract_features(file_name)
+    print('\n[INFO] Finished feature extraction from ',
+          len(features_df), ' files')
 
-    features.append([data, class_label])
+    # with open('../data/features_df', 'wb') as picklefile:
+    #    #pickle the dataframe
+    #    pickle.dump(features_df, picklefile)
+    features_df.to_pickle('./data/features_df.pkl')
 
-# Convert into a Panda dataframe
-featuresdf = pd.DataFrame(features, columns=['feature', 'class_label'])
-
-print('Finished feature extraction from ', len(featuresdf), ' files')
+    print('[INFO] Pickle a DataFrame...')

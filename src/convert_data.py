@@ -16,4 +16,12 @@ def convert(df):
     from sklearn.model_selection import train_test_split 
 
     x_train, x_test, y_train, y_test = train_test_split(X, yy, test_size=0.2, random_state = 42)
-    return x_train, x_test, y_train, y_test
+
+    num_rows = 40
+    num_columns = 174
+    num_channels = 1
+
+    x_train = x_train.reshape(x_train.shape[0], num_rows, num_columns, num_channels)
+    x_test = x_test.reshape(x_test.shape[0], num_rows, num_columns, num_channels)
+
+    return x_train, x_test, y_train, y_test, yy
